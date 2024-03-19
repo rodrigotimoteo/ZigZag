@@ -3,6 +3,7 @@ package game
 
 import random.RandomImpl
 
+import scala.annotation.tailrec
 import scala.io.Source
 
 object GameUtilities {
@@ -23,7 +24,7 @@ object GameUtilities {
    * @param rand the RandomImpl instance used to generate random numbers.
    * @return a tuple containing a random character from 'A' to 'Z' and the updated RandomImpl instance.
    */
-  def randomMove(rand: RandomImpl): (Char, RandomImpl) = {
+  private def randomMove(rand: RandomImpl): (Char, RandomImpl) = {
     val (randInt, newRand) = rand.nextInt(26)
     val randChar = (randInt + 'A'.toInt).toChar
 
@@ -89,11 +90,26 @@ object GameUtilities {
    * @param positions  the list of positions where each word should be placed
    * @return the updated game board with the words set at the specified positions
    */
-  def setBoardWithWords(board: Board, words: List[String], positions: List[List[Coord2D]]): Board = {
+  private def setBoardWithWords(board: Board, words: List[String], positions: List[List[Coord2D]]): Board = {
 
+    @tailrec
+    def updateBoard(board: Board, remainingWords: List[String], remainingPositions: List[List[Coord2D]], updatedBoard: Board): Board = {
+      (remainingWords, remainingPositions) match {
+        case (Nil, _) | (_, Nil) => updatedBoard
+        case (word :: tailWords, positions :: tailPositions) =>
 
-    board
-  }
+          val charPositionPairs = word.zip(positions)
+
+          val updatedBoardWithWord = charPositionPairs.foldLeft(updatedBoard) { case (accBoard, (char, (x, y))) =>
+            accBoard.updated(x, accBoard(x).updated(y, char))
+          }
+
+          updateBoard(board, tailWords, tailPositions, updatedBoardWithWord)
+      }
+    }
+
+    updateBoard(board, words, positions, board)
+  } //T3 completed
 
   /**
    * Completes the game board randomly using a provided function.
@@ -103,9 +119,27 @@ object GameUtilities {
    * @param f     the function used to generate random characters and update the random number generator
    * @return a tuple containing the updated game board and the updated RandomImpl instance
    */
-  def completeBoardRandomly(board: Board, rand: RandomImpl, f: RandomImpl => (Char, RandomImpl)): (Board, RandomImpl) = {
+  private def completeBoardRandomly(board: Board, rand: RandomImpl, f: RandomImpl => (Char, RandomImpl)): (Board, RandomImpl) = {
+    val emptyCells = findEmptyCells(board)
+    val (updatedBoard, updatedRand) = emptyCells.foldLeft((board, rand)) { case ((accBoard, accRand), (x, y)) =>
+      val (randomChar, newRand) = f(accRand)
+      (accBoard.updated(x, accBoard(x).updated(y, randomChar)), newRand)
+    }
+    (updatedBoard, updatedRand)
+  } //T4 completed
 
-    (board, rand)
+  /**
+   * Finds the coordinates of empty cells on the given game board.
+   *
+   * @param board the game board to search for empty cells
+   * @return a list of coordinates (Coord2D) representing the empty cells on the board
+   */
+  private def findEmptyCells(board: Board): List[Coord2D] = {
+    board.zipWithIndex.flatMap { case (row, rowIndex) =>
+      row.zipWithIndex.collect {
+        case (cell, colIndex) if cell == '*' => (rowIndex, colIndex)
+      }
+    }
   }
 
   /**
@@ -116,11 +150,15 @@ object GameUtilities {
    * @param board    the initial game board
    * @return the updated game board with words set at specified positions and completed randomly
    */
-  def generateNewBoard(filename: String, rand: RandomImpl, board: Board): Board = {
+  def generateNewBoard(filename: String, rand: RandomImpl, board: Board): (Board, RandomImpl) = {
     val (words, positions) = readWordAndPositions(filename)
-    val (board, rand) = completeBoardRandomly(setBoardWithWords(board, words, positions), rand, randomMove)
+    val (updatedBoard, updatedRand) = completeBoardRandomly(
+      setBoardWithWords(board, words, positions),
+      rand,
+      randomMove
+    )
 
-    board
+    (updatedBoard, updatedRand)
   }
 
 }

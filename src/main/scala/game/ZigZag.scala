@@ -1,9 +1,9 @@
 package pt.iscte
 package game
 
-import pt.iscte.game.GameUtilities.{fillOneCell, generateNewBoard, initBoard}
-import pt.iscte.random.RandomImpl
-import pt.iscte.ui.TUI
+import game.GameUtilities.{generateNewBoard, initBoard}
+import random.RandomImpl
+import ui.TUI
 
 import scala.annotation.tailrec
 
@@ -49,7 +49,6 @@ object ZigZag extends App {
   val rand = RandomImpl(1)
   val fileName = "src/main/scala/words"
 
-
   TUI.displayWelcomeMessage()
 
   private val boardSize = TUI.askForBoardSize()
@@ -57,9 +56,11 @@ object ZigZag extends App {
 
   TUI.showInstructions()
 
+  mainLoop()
+
   @tailrec
-  def mainLoop(): Unit = {
-    val move = TUI.askForMove()
+  private def mainLoop(): Unit = {
+    val (move, newRand) = TUI.decodeMove(TUI.askForMove())
 
     mainLoop()
   }

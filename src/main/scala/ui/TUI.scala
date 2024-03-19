@@ -24,6 +24,11 @@ object TUI {
   private val verticalSlash = "|"
 
   /**
+   * Represents a invalid position on the game logic
+   */
+  private val invalidPosition = (-1, -1)
+
+  /**
    * Reads user input from the standard input stream, trims leading and trailing whitespace,
    * and converts the input to uppercase.
    *
@@ -76,22 +81,21 @@ object TUI {
 
   def showInstructions(): Unit = {
     println("To play enter the move in the format [Row] [Column], or Exit to close the game")
-    println("Press [ENTER] to continue")
-    getUserInput
   }
 
   def askForMove(): String = {
-    print("Enter a new move")
+    print("Enter a new move: ")
     getUserInput
   }
 
   def decodeMove(move: String): Coord2D = {
+    println(move)
     if (move == "EXIT") System.exit(0)
     move.split(" ").toList match {
       case List(xValue, yValue) =>
         if ((xValue forall Character.isDigit) && (yValue forall Character.isDigit)) (xValue.toInt, yValue.toInt)
-        else (-1, -1)
-      case _ => invalidMove
+        else invalidPosition
+      case _ => invalidPosition
     }
 
 
