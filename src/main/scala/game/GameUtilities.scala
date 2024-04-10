@@ -6,6 +6,10 @@ import random.RandomImpl
 import scala.annotation.tailrec
 import scala.io.Source
 
+/**
+ * Helper object containing utility methods for the ZigZag word search game.
+ * This object provides various functions for game logic and board manipulation.
+ */
 object GameUtilities {
 
   /**
@@ -47,11 +51,11 @@ object GameUtilities {
    *
    * @param board  the game board
    * @param char   the letter to fill the cell with
-   * @param coord  the coordinates of the cell to fill
+   * @param coordinate  the coordinates of the cell to fill
    * @return a new board with the specified cell filled with the given letter
    */
-  def fillOneCell(board: Board, char: Char, coord: Coord2D): Board = {
-    val (xValue, yValue) = coord
+  def fillOneCell(board: Board, char: Char, coordinate: Coord2D): Board = {
+    val (xValue, yValue) = coordinate
     val updatedRow = board(yValue).updated(xValue, char)
 
     board.updated(yValue, updatedRow)
@@ -160,5 +164,32 @@ object GameUtilities {
 
     (updatedBoard, updatedRand)
   }
+
+  //Will be the T5, don't know expected behaviour
+//  def play(board: Board, word: String, start: Coord2D, dir: Direction.Direction): Boolean = {
+//    val direction = (Direction.horizontalComponent(dir), Direction.verticalComponent(dir))
+//
+//    @tailrec
+//    def search(word: String, coordinate: Coord2D, index: Int): Boolean = {
+//      if (index == word.length) return true
+//
+//      if (!isWithingBounds(coordinate, board) || board[coordinate] != word(index)) return false
+//
+//      search(word, x + dx, y + dy, index + 1)
+//    }
+//
+//    search(word, start, 0)
+//  }
+//
+//  /**
+//   * Checks if a given coordinate is within the bounds of the provided board.
+//   *
+//   * @param coordinate The coordinate to check.
+//   * @param board The game board.
+//   * @return True if the coordinate is within the bounds of the board, false otherwise.
+//   */
+//  def isWithingBounds(coordinate: Coord2D, board: Board): Boolean = {
+//    coordinate._1 >= 0 && coordinate._2 >= 0 && coordinate._1 < board.length && coordinate._2 < board.head.length
+//  }
 
 }

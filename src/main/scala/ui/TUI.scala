@@ -6,22 +6,61 @@ import game.GameUtilities.{Board, Coord2D}
 import scala.annotation.tailrec
 import scala.io.StdIn.readLine
 
+/**
+ * An object containing ANSI escape sequences for various colors.
+ * These escape sequences can be used to format text printed to the console
+ * in different colors.
+ */
+object Colors {
+  /**
+   * ANSI escape sequence for the color red.
+   */
+  val RED = "\u001b[31m"
+
+  /**
+   * ANSI escape sequence for the color green.
+   */
+  val GREEN = "\u001b[32m"
+
+  /**
+   * ANSI escape sequence for the color yellow.
+   */
+  val YELLOW = "\u001b[33m"
+
+  /**
+   * ANSI escape sequence for the color blue.
+   */
+  val BLUE = "\u001b[34m"
+
+  /**
+   * ANSI escape sequence for the color magenta.
+   */
+  val MAGENTA = "\u001b[35m"
+
+  /**
+   * ANSI escape sequence for the color cyan.
+   */
+  val CYAN = "\u001b[36m"
+
+  /**
+   * ANSI escape sequence for the color white.
+   */
+  val WHITE = "\u001b[37m"
+}
+
+/**
+ * An object containing text user interface utilities for the word search game.
+ * These utilities include methods for displaying messages, getting user input,
+ * and formatting the game interface.
+ */
 object TUI {
+
+  private var selectedColor = Colors.WHITE
 
   /**
    * Represents a space character used for spacing in text user interface.
    */
   private val space = " "
-
-  /**
-   * Represents a horizontal slash character used for creating horizontal borders in text user interface.
-   */
-  private val horizontalSlash = "-"
-
-  /**
-   * Represents a vertical slash character used for creating vertical borders in text user interface.
-   */
-  private val verticalSlash = "|"
 
   /**
    * Represents a invalid position on the game logic
@@ -34,7 +73,7 @@ object TUI {
    *
    * @return the user input as a trimmed and uppercase string.
    */
-  def getUserInput: String = readLine.trim.toUpperCase
+  private def getUserInput: String = readLine.trim.toUpperCase
 
 
   /**
@@ -43,10 +82,9 @@ object TUI {
    *
    * @param board the game board to display
    */
-//  @tailrec
-//  def displayBoard(board: Board): Unit = {
-//
-//  }
+  def displayBoard(board: Board): Unit = {
+    board.foreach(row => println(row.mkString(space + space)))
+  }
 
   /**
    * Displays a welcome message for the ZigZag Scala game.
@@ -63,10 +101,54 @@ object TUI {
    */
   def displayMenu(): String = {
     println("1 - Start Game")
-    println("2 - Settings\n")
+    println("2 - Select Word")
+    println("3 - Restart Game")
+    println("4 - Change Color")
+    println("5 - Exit\n")
 
     print("Select one option: ")
     getUserInput
+  }
+
+  /**
+   * Allows the user to select a word I guess?
+   */
+  def selectWord(): Unit = {
+    //don't know expected behaviour
+  }
+
+  /**
+   * Changes the color of the select characters I guess?
+   */
+  def changeCharColor(): Unit = {
+    println("1 - Red")
+    println("2 - Green")
+    println("3 - Yellow")
+    println("4 - Blue")
+    println("5 - Magenta")
+    println("6 - Cyan")
+    println("7 - White\n")
+
+    print("Select a new Color: ")
+    val color = getUserInput
+
+    color match {
+      case "1" => selectedColor = Colors.RED
+      case "2" => selectedColor = Colors.GREEN
+      case "3" => selectedColor = Colors.YELLOW
+      case "4" => selectedColor = Colors.BLUE
+      case "5" => selectedColor = Colors.MAGENTA
+      case "6" => selectedColor = Colors.CYAN
+      case "7" => selectedColor = Colors.WHITE
+    }
+  }
+
+  /**
+   * Exits the game.
+   */
+  def exitGame(): Unit = {
+    println("Exiting Game! See you next time!")
+    System.exit(0)
   }
 
   /**
@@ -79,15 +161,29 @@ object TUI {
     getUserInput
   }
 
+  /**
+   * Displays the game instructions to the user.
+   */
   def showInstructions(): Unit = {
     println("To play enter the move in the format [Row] [Column], or Exit to close the game")
   }
 
+  /**
+   * Prompts the user to enter a new move.
+   *
+   * @return The user's input as a string representing the move.
+   */
   def askForMove(): String = {
     print("Enter a new move: ")
     getUserInput
   }
 
+  /**
+   * Decodes a user move string into a 2D coordinate.
+   *
+   * @param move The user move string in the format "x y" or "EXIT" to exit the program.
+   * @return The decoded 2D coordinate.
+   */
   def decodeMove(move: String): Coord2D = {
     println(move)
     if (move == "EXIT") System.exit(0)
@@ -97,9 +193,6 @@ object TUI {
         else invalidPosition
       case _ => invalidPosition
     }
-
-
   }
-
 
 }

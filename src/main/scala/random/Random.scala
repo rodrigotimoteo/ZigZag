@@ -16,5 +16,4 @@ trait Random {
    */
   def nextInt(n: Int): (Int, Random)
 
-  //def nextCoords(n:Int):((Int,Int), randState)
 }

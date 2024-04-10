@@ -7,62 +7,62 @@ import ui.TUI
 
 import scala.annotation.tailrec
 
+/**
+ * Main entry point for the ZigZag word search game text user interface variant.
+ * This object serves as the starting point for the application, initiating the text-based user interface.
+ */
 object ZigZag extends App {
-//  val startBoard = createBoardCompact(asksBoardSize().toInt)
-//  val rand = MyRandom(11)
-//  val cells = asksPlayerColor()
-//
-//  val startGameState = GameState(startBoard,cells,rand)
-//  val game = Game(List(startGameState),cells, false, false)
-//
-//  showExampleDecision()
-//
-//  mainLoop(game)
-//
-//  @tailrec
-//  def mainLoop(game: Game): Unit = {
-//
-//    showPrompt()
-//
-//    val decision = playerDecision(getUserInput())
-//
-//    if (decision != undo) {
-//      // Player's Turn
-//      val playerBoard = askAndPlay(game.gs.head, decision._1, decision._2)
-//      val playerState = GameState(playerBoard,game.cells,game.gs.head.random)
-//      // Computer's Turn
-//      val (newBoard, newRandom, _) = playerState.playIA()
-//
-//      val newGame = game.addBoard(newBoard, newRandom)
-//      printBoard(newBoard)
-//
-//      // Next Turn or Game Over
-//      val (gameWon) = printGameWon(newBoard)
-//      if (!gameWon) mainLoop(newGame)
-//    }
-//    // Return to previous Board
-//    else {
-//      mainLoop(game.undo())
-//    }
-//  }
+
   //Currently set to a defined seed
   val rand = RandomImpl(1)
   val fileName = "src/main/scala/words"
 
   TUI.displayWelcomeMessage()
 
-  private val boardSize = TUI.askForBoardSize()
-  var board = generateNewBoard(fileName, rand, initBoard(boardSize.toInt, boardSize.toInt))
-
-  TUI.showInstructions()
-
   mainLoop()
 
+  /**
+   * Main loop method responsible for controlling the flow of the ZigZag word search game.
+   * This method continuously displays the welcome message and menu options, allowing the player to interact
+   * with the game through the text user interface.
+   */
   @tailrec
-  private def mainLoop(): Unit = {
+  private def mainLoop(): Unit  = {
+    TUI.displayWelcomeMessage()
+    val option = TUI.displayMenu()
+
+    option match {
+      case "1" => {
+        mainGameLoop()
+      }
+      case "2" => TUI.selectWord()
+      case "3" => {
+        println("Restarting game!")
+        mainGameLoop()
+      }
+      case "4" => TUI.changeCharColor()
+      case "5" => TUI.exitGame()
+      case _   => println("Invalid option. Please select a valid one!")
+    }
+    mainLoop()
+  }
+
+  /**
+   * Main loop method responsible for controlling the gameplay of the ZigZag word search game.
+   * This method handles the logic for setting up the game board, displaying it, and processing player moves.
+   */
+  @tailrec
+  private def mainGameLoop(): Unit = {
+    val boardSize = TUI.askForBoardSize()
+    val board = generateNewBoard(fileName, rand, initBoard(boardSize.toInt, boardSize.toInt))
+
+    TUI.displayBoard(board._1)
+
+    TUI.showInstructions()
+
     val (move, newRand) = TUI.decodeMove(TUI.askForMove())
 
-    mainLoop()
+    mainGameLoop()
   }
 
 }
