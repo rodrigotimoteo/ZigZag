@@ -1,7 +1,7 @@
 package pt.iscte
 package game
 
-import game.GameUtilities.{generateNewBoard, initBoard}
+import game.GameUtilities.{Board, generateNewBoard, initBoard}
 import random.RandomImpl
 import ui.TUI
 
@@ -16,6 +16,7 @@ object ZigZag extends App {
   //Currently set to a defined seed
   val rand = RandomImpl(1)
   val fileName = "src/main/scala/words"
+  var startTime: Long = 0
 
   TUI.displayWelcomeMessage()
 
@@ -33,11 +34,19 @@ object ZigZag extends App {
 
     option match {
       case "1" => {
+        val boardSize = TUI.askForBoardSize()
+        val board = generateNewBoard(fileName, rand, initBoard(boardSize.toInt, boardSize.toInt))
+
+        TUI.displayBoard(board._1)
+        TUI.showInstructions()
+
         mainGameLoop()
+        startTime = System.currentTimeMillis()
       }
       case "2" => TUI.selectWord()
       case "3" => {
         println("Restarting game!")
+
         mainGameLoop()
       }
       case "4" => TUI.changeCharColor()
@@ -53,14 +62,18 @@ object ZigZag extends App {
    */
   @tailrec
   private def mainGameLoop(): Unit = {
-    val boardSize = TUI.askForBoardSize()
-    val board = generateNewBoard(fileName, rand, initBoard(boardSize.toInt, boardSize.toInt))
+    val (move, _) = TUI.decodeMove(TUI.askForMove())
 
-    TUI.displayBoard(board._1)
+    //GameUtilities.play()
 
-    TUI.showInstructions()
+    if(GameUtilities.isGameFinished) {
+      println("\nGame Finished!")
 
-    val (move, newRand) = TUI.decodeMove(TUI.askForMove())
+      val score = GameUtilities.computeScore(System.currentTimeMillis() - startTime)
+      println("Your score was " + score + "!\n")
+
+      mainLoop()
+    }
 
     mainGameLoop()
   }

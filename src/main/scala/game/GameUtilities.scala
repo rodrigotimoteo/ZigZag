@@ -23,6 +23,11 @@ object GameUtilities {
   type Coord2D = (Int, Int)
 
   /**
+   * Represents the maximum expected time that a game should take (to compute score)
+   */
+  val maxTimeScore = 6000
+
+  /**
    * Generates a random character from 'A' to 'Z' using the provided RandomImpl instance.
    *
    * @param rand the RandomImpl instance used to generate random numbers.
@@ -157,10 +162,7 @@ object GameUtilities {
   def generateNewBoard(filename: String, rand: RandomImpl, board: Board): (Board, RandomImpl) = {
     val (words, positions) = readWordAndPositions(filename)
     val (updatedBoard, updatedRand) = completeBoardRandomly(
-      setBoardWithWords(board, words, positions),
-      rand,
-      randomMove
-    )
+      setBoardWithWords(board, words, positions), rand, randomMove)
 
     (updatedBoard, updatedRand)
   }
@@ -191,5 +193,37 @@ object GameUtilities {
 //  def isWithingBounds(coordinate: Coord2D, board: Board): Boolean = {
 //    coordinate._1 >= 0 && coordinate._2 >= 0 && coordinate._1 < board.length && coordinate._2 < board.head.length
 //  }
+
+  /**
+   * Validates the game board by checking that it contains all the specified words, ensuring they are valid and
+   * non-duplicated.
+   *
+   * @param board The game board to be validated.
+   * @return True if the board is valid, false otherwise.
+   */
+  def checkBoard(board: Board): Boolean = {
+    true
+  } //T6 TODO
+
+  /**
+   * Determines whether the game is finished or not.
+   *
+   * @return true if the game is finished, false otherwise.
+   */
+  def isGameFinished: Boolean = {
+    true
+  }
+
+  /**
+   * Computes the score based on the elapsed time.
+   *
+   * @param time The elapsed time in milliseconds.
+   * @return The computed score.
+   */
+  def computeScore(time: Int): Int = {
+    val score = maxTimeScore - (time / 100)
+
+    score
+  } //T7 completed
 
 }
