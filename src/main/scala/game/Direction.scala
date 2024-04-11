@@ -20,9 +20,9 @@ object Direction extends Enumeration {
    * @return The horizontal component of the given direction.
    */
   def horizontalComponent(dir: Direction): Int = dir match {
-    case North | South | East | West => 0
-    case NorthEast | NorthWest => -1
-    case SouthEast | SouthWest => 1
+    case North | South => 0
+    case SouthWest | NorthWest | West => -1
+    case SouthEast | NorthEast | East => 1
   }
 
   /**
@@ -32,8 +32,9 @@ object Direction extends Enumeration {
    * @return The vertical component of the given direction.
    */
   def verticalComponent(dir: Direction): Int = dir match {
-    case North | South | East | West => 0
-    case NorthEast | SouthEast => 1
-    case NorthWest | SouthWest => -1
+    case East | West => 0
+    case NorthEast | North | NorthWest => -1
+    case SouthEast | South | SouthWest => 1
+
   }
 }

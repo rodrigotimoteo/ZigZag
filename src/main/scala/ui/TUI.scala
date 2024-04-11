@@ -3,6 +3,9 @@ package ui
 
 import game.GameUtilities.{Board, Coord2D}
 
+import game.Direction
+import game.Direction.Direction
+
 import scala.annotation.tailrec
 import scala.io.StdIn.readLine
 
@@ -101,20 +104,11 @@ object TUI {
    */
   def displayMenu(): String = {
     println("1 - Start Game")
-    println("2 - Select Word")
-    println("3 - Restart Game")
-    println("4 - Change Color")
-    println("5 - Exit\n")
+    println("2 - Change Color")
+    println("3 - Exit\n")
 
     print("Select one option: ")
     getUserInput
-  }
-
-  /**
-   * Allows the user to select a word I guess?
-   */
-  def selectWord(): Unit = {
-    //don't know expected behaviour
   }
 
   /**
@@ -162,19 +156,81 @@ object TUI {
   }
 
   /**
-   * Displays the game instructions to the user.
+   * Displays the Play Menu and prompts the user to select an option.
+   *
+   * @return The user's selected option as a string.
    */
-  def showInstructions(): Unit = {
-    println("To play enter the move in the format [Row] [Column], or Exit to close the game")
+  def askPlayMenu(): String = {
+    println("Welcome to the Play Menu")
+    println("1 - Make a move")
+    println("2 - Select a word")
+    println("3 - Restart game")
+    println("4 - Exit the game")
+    print("Please, select an option: ")
+
+    getUserInput
   }
 
   /**
-   * Prompts the user to enter a new move.
+   * Displays the game instructions to the user.
+   */
+  def showInstructions(): Unit = {
+    println("To play you need to type a selected word, a starting position to search and a direction for the search")
+  }
+
+  /**
+   * Displays the word selection prompt and get a word from the user
+   *
+   * @return word given by the user
+   */
+  def askWordPrompt(): String = {
+    print("Please selected a word to search: ")
+    getUserInput
+  }
+
+  /**
+   * Displays the direction selection prompt and gets a direction from the user
+   *
+   * @return direction given by the user
+   */
+  @tailrec
+  def askDirectionPrompt(): Direction = {
+    println("Please select a direction from the following")
+    println("1 - NorthWest")
+    println("2 - North")
+    println("3 - NorthEast")
+    println("4 - East")
+    println("5 - SouthEast")
+    println("6 - South")
+    println("7 - SouthWest")
+    println("8 - West")
+    print("Your option: ")
+
+    val direction = getUserInput
+
+    direction match {
+      case "1" => Direction.NorthWest
+      case "2" => Direction.North
+      case "3" => Direction.NorthEast
+      case "4" => Direction.East
+      case "5" => Direction.SouthEast
+      case "6" => Direction.South
+      case "7" => Direction.SouthWest
+      case "8" => Direction.West
+      case _ =>
+        println("Invalid option! Asking again!")
+        askDirectionPrompt()
+
+    }
+  }
+
+  /**
+   * Prompts the user to enter a new position to begin the search.
    *
    * @return The user's input as a string representing the move.
    */
   def askForMove(): String = {
-    print("Enter a new move: ")
+    print("Enter a position: ")
     getUserInput
   }
 
@@ -185,7 +241,6 @@ object TUI {
    * @return The decoded 2D coordinate.
    */
   def decodeMove(move: String): Coord2D = {
-    println(move)
     if (move == "EXIT") System.exit(0)
     move.split(" ").toList match {
       case List(xValue, yValue) =>
