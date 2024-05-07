@@ -33,11 +33,6 @@ object GameUtilities {
   private val maxTimeScore = 6000
 
   /**
-   * Stores the word currently trying the be guessed by the player
-   */
-  private var currentWord: String = ""
-
-  /**
    * Initializes the WordKeeper map by reading data from a file.
    * The method reads the specified file and constructs a WordKeeper map, where
    * each line in the file represents a word followed by its associated 2D coordinates.
@@ -180,22 +175,24 @@ object GameUtilities {
   }
 
   /**
-   * Plays a word on the board starting from the specified coordinate in the given direction.
-
-   * The method checks if the specified word is present in the WordKeeper map and if the starting coordinate
-   * is included in the associated list of coordinates for the word. If both conditions are met, the method
-   * calculates the next coordinate based on the given direction and checks if it exists in the list of coordinates.
-   * If the next coordinate is found, the method returns true; otherwise, it returns false.
+   * Plays the word search game starting from a given position and direction.
    *
-   * @param board  The board on which to play the word.
-   * @param start  The starting coordinate to place the first character of the word.
-   * @param dir    The direction in which to play the word.
-   * @return       true if the word can be played in the specified direction, false otherwise.
+   * This method checks if the provided start position and direction are valid for the game board
+   * and if the first character of the current word matches the character at the start position.
+   * If any of these conditions fail, the method returns (false, Set.empty).
+   *
+   * If the conditions are met, the method recursively searches for the complete word on the board,
+   * moving in the specified direction. It returns `(true, visited)` if the word is found, where `visited`
+   * is a set of coordinates that were visited during the search.
+   *
+   * @param board The game board represented as a 2D list of characters.
+   * @param start The starting position (row, column) for the word search.
+   * @param dir The direction of the word search (e.g., North, South, East, West, etc.).
+   * @return A tuple containing a boolean indicating whether the word was found (true for found, false for not found)
+   *         and a set of coordinates that were visited during the search.
    */
-  def play(board: Board, start: Coord2D, dir: Direction.Direction): (Boolean, Set[Coord2D]) = {
-    val word = getCurrentWord
-
-    if(!isWithinBounds(start, board) || board(start._1)(start._2) != word(0))
+  def play(board: Board, start: Coord2D, dir: Direction.Direction, currentWord: String): (Boolean, Set[Coord2D]) = {
+    if(!isWithinBounds(start, board) || board(start._1)(start._2) != currentWord(0))
       return (false, Set.empty)
 
     val direction = (Direction.horizontalComponent(dir), Direction.verticalComponent(dir))
@@ -205,13 +202,12 @@ object GameUtilities {
 
     @tailrec
     def searchWord(board: Board, coordinates: List[Coord2D], index: Int, visited: Set[Coord2D]): (Boolean, Set[Coord2D])  = {
-      if (index == word.length) return (true, visited)
+      if (index == currentWord.length) return (true, visited)
       if (coordinates.isEmpty)  return (false, Set.empty)
-
 
       val matchingCharCoordinates = coordinates.filter { newCoordinates: Coord2D =>
         val newCoordinate = newCoordinates
-        board(newCoordinate._2)(newCoordinate._1) == word(index)
+        board(newCoordinate._2)(newCoordinate._1) == currentWord(index)
       }
 
       val adjacentCoordinates = matchingCharCoordinates.flatMap { matchingCoordinate =>
@@ -221,7 +217,13 @@ object GameUtilities {
       searchWord(board, adjacentCoordinates, index + 1, visited ++ matchingCharCoordinates.toSet)
     }
 
-    searchWord(board, List(coordinate), 1, Set(start))
+    val (foundWord, visitedCoords) = searchWord(board, List(coordinate), 1, Set(start))
+
+    if(foundWord) {
+
+    }
+
+    (foundWord, visitedCoords)
   } //T5 Completed
 
   /**
@@ -280,26 +282,18 @@ object GameUtilities {
     coordinate._1 >= 0 && coordinate._1 < board.head.length && coordinate._2 >= 0 && coordinate._2 < board.length
   }
 
+  /**
+   * Sums two coordinates to calculate a new coordinate.
+   *
+   * This method takes two coordinates and calculates their sum by adding their respective components.
+   * The result is a new coordinate representing the sum of the two input coordinates.
+   *
+   * @param coordinate1 The first coordinate represented as a tuple (x1, y1).
+   * @param coordinate2 The second coordinate represented as a tuple (x2, y2).
+   * @return The sum of the two input coordinates as a new coordinate represented as a tuple (x1 + x2, y1 + y2).
+   */
   private def sumCoordinate(coordinate1: Coord2D, coordinate2: Coord2D): Coord2D = {
     (coordinate1._1 + coordinate2._1, coordinate1._2 + coordinate2._2)
-  }
-
-  /**
-   * Assigns a word to the current word being search (mutable state not sure if expected)
-   *
-   * @param word the word given by the user
-   */
-  def assignCurrentWord(word: String): Unit = {
-    currentWord = word.toUpperCase
-  }
-
-  /**
-   * Getter method for the current word being searched
-   *
-   * @return current word being searched by the user
-   */
-  def getCurrentWord: String = {
-    currentWord
   }
 
   /**
@@ -332,6 +326,6 @@ object GameUtilities {
     val score = (maxTimeScore - (time / 1000)).toInt
 
     score
-  } //T7 completed
+  } //T7
 
 }

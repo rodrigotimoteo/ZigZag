@@ -2,8 +2,7 @@ package pt.iscte
 package ui
 
 import game.GameUtilities.{Board, Coord2D}
-
-import game.Direction
+import game.{Direction, GameState, Game}
 import game.Direction.Direction
 
 import scala.annotation.tailrec
@@ -58,7 +57,7 @@ object Colors {
  */
 object TUI {
 
-  private var selectedColor = Colors.WHITE
+  private var selectedColor = Colors.RED
 
   /**
    * Represents a space character used for spacing in text user interface.
@@ -78,15 +77,28 @@ object TUI {
    */
   private def getUserInput: String = readLine.trim.toUpperCase
 
-
   /**
    * Displays the board in a text user interface format with horizontal and vertical borders,
    * and letters separated by spaces.
    *
-   * @param board the game board to display
+   * @param game contains the game state containing the board to display
    */
-  def displayBoard(board: Board): Unit = {
-    board.foreach(row => println(row.mkString(space + space)))
+  def displayBoard(game: Game): Unit = {
+    val board = game.gameState.board
+    val foundCoords = game.wordCoords
+
+    board.zipWithIndex.foreach { case (row, rowIndex) =>
+      row.zipWithIndex.foreach { case (cell, colIndex) =>
+        val coord: Coord2D = (colIndex, rowIndex)
+
+        if(foundCoords.contains(coord))
+          print(selectedColor + cell + space)
+        else
+          print(Colors.WHITE + cell + space)
+      }
+
+      println()
+    }
   }
 
   /**
@@ -105,10 +117,50 @@ object TUI {
   def displayMenu(): String = {
     println("1 - Start Game")
     println("2 - Change Color")
-    println("3 - Exit\n")
+    println("3 - Load Game")
+    println("4 - Exit\n")
 
     print("Select one option: ")
     getUserInput
+  }
+
+  /**
+   * Displays instructions for loading a saved game.
+   *
+   * @return A string representing the name of the file to load.
+   */
+  def showLoadInstructions(): String = {
+    println("To load a save game please input the name of the file. Remember the file should be under ./saves/!")
+    print("File to load: ")
+    val input = getUserInput
+
+    if(input.isEmpty) {
+      println("Please try again!")
+      showLoadInstructions()
+    }
+
+    input
+  }
+
+  /**
+   * Asks the user to provide a name for the file to save the game.
+   *
+   * This method prompts the user to input a name for the file where the game will be saved. If the user
+   * input is empty, the method recursively calls itself until a non-empty input is provided.
+   *
+   * @return A string representing the name for the savegame file provided by the user.
+   */
+  def askForFileName(): String = {
+    println("To save the game provide a name for the file.")
+    print("Savegame's name: ")
+    val input = getUserInput
+
+    if(input.isEmpty) {
+      println("Please try again!")
+      askForFileName()
+    }
+
+    input
   }
 
   /**
@@ -163,8 +215,8 @@ object TUI {
   def askPlayMenu(): String = {
     println("Welcome to the Play Menu")
     println("1 - Make a move")
-    println("2 - Select a word")
-    println("3 - Restart game")
+    println("2 - Restart game")
+    println("3 - Save game")
     println("4 - Exit the game")
     print("Please, select an option: ")
 
