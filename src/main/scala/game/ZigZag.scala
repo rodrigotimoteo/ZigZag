@@ -17,6 +17,8 @@ object ZigZag extends App {
   val rand = RandomImpl(2)
   val fileName = "src/main/scala/words"
 
+  var wordsFounds = 0
+
   private var startTime: Long = 0
 
   TUI.displayWelcomeMessage()
@@ -44,8 +46,8 @@ object ZigZag extends App {
         TUI.displayBoard(newGame)
         TUI.showInstructions()
 
-        mainGameLoop(newGame)
         startTime = System.currentTimeMillis
+        mainGameLoop(newGame)
       case "2" => TUI.changeCharColor()
       case "3" =>
         val fileName = TUI.showLoadInstructions()
@@ -54,9 +56,8 @@ object ZigZag extends App {
             TUI.displayBoard(savedGame)
             TUI.showInstructions()
 
-            mainGameLoop(savedGame)
             startTime = System.currentTimeMillis
-
+            mainGameLoop(savedGame)
           case None =>
             println("Invalid file try again!")
         }
@@ -85,12 +86,15 @@ object ZigZag extends App {
 
           if(result._1) {
             println("Word found!")
+            wordsFounds = wordsFounds + 1
 
             val newGame = game.updateWordCoords(result._2)
             TUI.displayBoard(newGame)
 
-            if(GameUtilities.isGameFinished) {
+            if(GameUtilities.isGameFinished(newGame.gameState.board, wordsFounds)) {
               println("\nGame Finished!")
+
+              println(startTime + "    " + System.currentTimeMillis())
 
               val score = GameUtilities.computeScore(System.currentTimeMillis() - startTime)
               println("Your score was " + score + "!\n")

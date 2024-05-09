@@ -173,10 +173,16 @@ object TUI {
     println("4 - Blue")
     println("5 - Magenta")
     println("6 - Cyan")
-    println("7 - White\n")
+    println("7 - White")
+    println("8 - Go back\n")
 
     print("Select a new Color: ")
     val color = getUserInput
+
+    if(color.isEmpty) {
+      println("Please try again!")
+      changeCharColor()
+    }
 
     color match {
       case "1" => selectedColor = Colors.RED
@@ -186,6 +192,7 @@ object TUI {
       case "5" => selectedColor = Colors.MAGENTA
       case "6" => selectedColor = Colors.CYAN
       case "7" => selectedColor = Colors.WHITE
+      case "8" => selectedColor = selectedColor
     }
   }
 
@@ -204,7 +211,14 @@ object TUI {
    */
   def askForBoardSize(): String = {
     print("Enter the board size: ")
-    getUserInput
+    val input = getUserInput
+
+    if(input.isEmpty) {
+      println("Please try again!")
+      askForBoardSize()
+    }
+
+    input
   }
 
   /**
@@ -220,7 +234,14 @@ object TUI {
     println("4 - Exit the game")
     print("Please, select an option: ")
 
-    getUserInput
+    val input = getUserInput
+
+    if(input.isEmpty) {
+      println("Please try again!")
+      askPlayMenu()
+    }
+
+    input
   }
 
   /**
@@ -237,7 +258,14 @@ object TUI {
    */
   def askWordPrompt(): String = {
     print("Please selected a word to search: ")
-    getUserInput
+    val input = getUserInput
+
+    if(input.isEmpty) {
+      println("Please try again!")
+      askWordPrompt()
+    }
+
+    input
   }
 
   /**
@@ -283,7 +311,14 @@ object TUI {
    */
   def askForMove(): String = {
     print("Enter a position: ")
-    getUserInput
+    val input = getUserInput
+
+    if(input.isEmpty) {
+      println("Please try again!")
+      askForMove()
+    }
+
+    input
   }
 
   /**

@@ -25,12 +25,17 @@ object GameUtilities {
   /**
    * Private type alias representing a mapping of words to a list of 2D coordinates.
    */
-  private type WordKeeper = Map[String, List[Coord2D]]
+  private type WordKeeper = Map[(Int, String), List[Coord2D]]
 
   /**
    * Represents the maximum expected time that a game should take (to compute score)
    */
   private val maxTimeScore = 6000
+
+  /**
+   * Represents the maximum words expected within 25 characters
+   */
+  private val maxWordsPer25Char = 2
 
   /**
    * Initializes the WordKeeper map by reading data from a file.
@@ -47,10 +52,12 @@ object GameUtilities {
     try {
       val lines = source.getLines().map { line =>
         val parts = line.split(" ")
-        val word = parts.head
-        val coordinates = parts.tail.grouped(2).toList.map { case Array(x, y) => (x.toInt, y.toInt) }
+        val minimumSizeBoard = parts.head.toInt
+        val newParts = parts.tail
+        val word = newParts.head
+        val coordinates = newParts.tail.grouped(2).toList.map { case Array(x, y) => (x.toInt, y.toInt) }
 
-        (word, coordinates)
+        ((minimumSizeBoard, word), coordinates)
       }.toMap
 
       lines
@@ -166,10 +173,22 @@ object GameUtilities {
    * @return the updated game board with words set at specified positions and completed randomly
    */
   def generateNewBoard(filename: String, rand: RandomImpl, board: Board): (Board, RandomImpl) = {
-   val wordKeeper = initializeWordKeeper(filename)
+    val wordKeeper = initializeWordKeeper(filename)
+    val boardSize  = board.head.length
 
-    val (updatedBoard, updatedRand) = completeBoardRandomly(
-      setBoardWithWords(board, wordKeeper.keys.toList, wordKeeper.values.toList), rand, randomChar)
+    val filteredWordKeeper = wordKeeper.filter { case ((boardLength, _), _) =>
+      boardLength <= boardSize
+    }
+
+    if(filteredWordKeeper.isEmpty) {
+      System.err.println("Board size too little to play! Start again!")
+      System.exit(1)
+    }
+
+    val (updatedBoard, updatedRand) = completeBoardRandomly(setBoardWithWords(board, filteredWordKeeper.keys.collect
+        {case (_, str) => str}.toList, filteredWordKeeper.values.toList), rand, randomChar)
+
+    if(!checkBoard(updatedBoard, filteredWordKeeper)) generateNewBoard(filename, updatedRand, board)
 
     (updatedBoard, updatedRand)
   }
@@ -177,13 +196,6 @@ object GameUtilities {
   /**
    * Plays the word search game starting from a given position and direction.
    *
-   * This method checks if the provided start position and direction are valid for the game board
-   * and if the first character of the current word matches the character at the start position.
-   * If any of these conditions fail, the method returns (false, Set.empty).
-   *
-   * If the conditions are met, the method recursively searches for the complete word on the board,
-   * moving in the specified direction. It returns `(true, visited)` if the word is found, where `visited`
-   * is a set of coordinates that were visited during the search.
    *
    * @param board The game board represented as a 2D list of characters.
    * @param start The starting position (row, column) for the word search.
@@ -200,31 +212,35 @@ object GameUtilities {
 
     if(!isWithinBounds(coordinate, board)) return (false, Set.empty)
 
-    @tailrec
-    def searchWord(board: Board, coordinates: List[Coord2D], index: Int, visited: Set[Coord2D]): (Boolean, Set[Coord2D])  = {
-      if (index == currentWord.length) return (true, visited)
-      if (coordinates.isEmpty)  return (false, Set.empty)
-
-      val matchingCharCoordinates = coordinates.filter { newCoordinates: Coord2D =>
-        val newCoordinate = newCoordinates
-        board(newCoordinate._2)(newCoordinate._1) == currentWord(index)
-      }
-
-      val adjacentCoordinates = matchingCharCoordinates.flatMap { matchingCoordinate =>
-        getAdjacentValidPositions(matchingCoordinate, board).filter(!visited.contains(_))
-      }
-
-      searchWord(board, adjacentCoordinates, index + 1, visited ++ matchingCharCoordinates.toSet)
-    }
-
-    val (foundWord, visitedCoords) = searchWord(board, List(coordinate), 1, Set(start))
-
-    if(foundWord) {
-
-    }
-
-    (foundWord, visitedCoords)
+    searchWord(board, currentWord, List(coordinate), 1, Set(start))
   } //T5 Completed
+
+
+  /**
+   * Recursively searches for a word on a given game board, starting from the specified coordinates.
+   *
+   * @param board       The game board represented as a 2D array of characters.
+   * @param coordinates The list of coordinates to start the search from.
+   * @param index       The current index in the word being searched for.
+   * @param visited     The set of coordinates that have already been visited during the search.
+   * @return A tuple containing a boolean value indicating whether the word was found, and a set of visited coordinates.
+   */
+  @tailrec
+  def searchWord(board: Board, currentWord: String, coordinates: List[Coord2D], index: Int, visited: Set[Coord2D]): (Boolean, Set[Coord2D])  = {
+    if (index == currentWord.length) return (true, visited)
+    if (coordinates.isEmpty)  return (false, Set.empty)
+
+    val matchingCharCoordinates = coordinates.filter { newCoordinates: Coord2D =>
+      val newCoordinate = newCoordinates
+      board(newCoordinate._2)(newCoordinate._1) == currentWord(index)
+    }
+
+    val adjacentCoordinates = matchingCharCoordinates.flatMap { matchingCoordinate =>
+      getAdjacentValidPositions(matchingCoordinate, board).filter(!visited.contains(_))
+    }
+
+    searchWord(board, currentWord, adjacentCoordinates, index + 1, visited ++ matchingCharCoordinates.toSet)
+  }
 
   /**
    * Retrieves a list of adjacent valid positions (up, down, left, right, and diagonals) for a given coordinate on the board.
@@ -303,17 +319,36 @@ object GameUtilities {
    * @param board The game board to be validated.
    * @return True if the board is valid, false otherwise.
    */
-  def checkBoard(board: Board): Boolean = {
-    true
-  } //T6 TODO
+  private def checkBoard(board: Board, wordKeeper: WordKeeper): Boolean = {
+    val boardSize = board.head.length
+    val numberOfChars = Math.pow(boardSize, 2)
+
+    val numberOfWords = (numberOfChars / 25.0 * maxWordsPer25Char).toInt
+
+    val filteredWordKeeper = wordKeeper.filter { case ((boardLength, _), _) =>
+      boardLength <= boardSize
+    }
+
+    val countWords = filteredWordKeeper.count { case ((boardLength, word), coordinates) =>
+      boardLength <= boardSize && board(coordinates.head._2)(coordinates.head._1) == word(0) &&
+        searchWord(board, word, List(coordinates(1)), 1, Set(coordinates.head))._1
+    }
+
+    countWords >= numberOfWords
+  } //T6 Completed?
 
   /**
    * Determines whether the game is finished or not.
    *
    * @return true if the game is finished, false otherwise.
    */
-  def isGameFinished: Boolean = {
-    false
+  def isGameFinished(board: Board,wordsFound: Int): Boolean = {
+    val boardSize = board.head.length
+    val numberOfChars = Math.pow(boardSize, 2)
+
+    val numberOfWords = (numberOfChars / 25.0 * maxWordsPer25Char).toInt
+
+    wordsFound >= numberOfWords
   }
 
   /**
@@ -326,6 +361,6 @@ object GameUtilities {
     val score = (maxTimeScore - (time / 1000)).toInt
 
     score
-  } //T7
+  } //T7 Completed
 
 }
